@@ -4,7 +4,7 @@
 import cmd
 import json
 import re
-from shlex import split
+import shlex
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
@@ -16,6 +16,7 @@ from models.review import Review
 
 
 def parse(arg):
+    """tokenizes the commands"""
     curly_brackets = re.search(r"\{(.*?)\}", arg)
     square_brackets = re.search(r"\[(.*?)\]", arg)
     if curly_brackets is None:
@@ -62,7 +63,7 @@ class HBNBCommand(cmd.Cmd):
         }
         match = re.search(r"\.", arg)
         if match is not None:
-            argl = [arg[:match.span()[0]], arg[match.span()[1]:]]
+            ArgumentOne = [arg[:match.span()[0]], arg[match.span()[1]:]]
             match = re.search(r"\((.*?)\)", argl[1])
             if match is not None:
                 command = [ArgumentOne[1][:match.span()[0]], match.group()[1:-1]]
@@ -75,6 +76,10 @@ class HBNBCommand(cmd.Cmd):
     def do_quit(self, arg):
         """uses quit command to exit the program"""
         return True
+    def help_quit(self, arg):
+        """
+        """
+        print("type Quit to exit the program")
 
     def do_EOF(self, arg):
         """uses EOF signal to exit the program"""
@@ -83,7 +88,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, arg):
         """creates a new instance of the base model and prints its id"""
-        ArgumentOne = parse(arg)
+        ArgumentOne = shlex.split(arg)
 
         if len(ArgumentOne) == 0:
             print("** class name missing **")
@@ -91,13 +96,13 @@ class HBNBCommand(cmd.Cmd):
         elif ArgumentOne[0] not in HBNBCommand.__classes:
             print("** class doesn't exist **")
         else:
-            print(eval(ArgumentOne[0])().id)
-            storage.save()
+            new_instance = BaseModel()
+            new_instance.save()
+            print(new_instance.id)
 
     def do_show(self, arg):
         """Prints the string representation of an instance based on the class name and id"""
-        ArgumentOne = parse(arg)
-        odict = storage.all()
+        ArgumentOne = shlex.split(arg)
 
         if len(ArgumentOne) == 0:
             print("** class name missing **")
@@ -105,15 +110,19 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
         elif len(ArgumentOne) == 1:
             print("** instance id missing **")
-        elif "{}.{}".format(argl[0], argl[1]) not in odict:
-            print("** no instance found **")
         else:
-            print(odict["{}.{}".format(argl[0], argl[1])])
+            odict = storage.all()
+
+            key = "{}.{}".format(argl[0], ArgumentOne[1])
+            if key in odict:
+                print(odict[key])
+            else:
+                print("** no instance found **")
 
     def do_update(self, arg):
         """Updates an instance based on the class name and id by adding or updating attribute (save the change into the JSON file)."""
         ArgumentOne = parse(arg)
-        odict = storage.all()
+        objdict = storage.all()
 
         if len(ArgumentOne) == 0:
             print("** class name missing **")
@@ -124,7 +133,7 @@ class HBNBCommand(cmd.Cmd):
         if len(ArgumentOne) == 1:
             print("** instance id missing **")
             return False
-        if "{}.{}".format(ArgumentOne[0], ArgumentOne[1]) not in odict.keys():
+        if "{}.{}".format(ArgumentOne[0], ArgumentOne[1]) not in objdict.keys():
             print("** no instance found **")
             return False
         if len(ArgumentOne) == 2:
@@ -138,7 +147,7 @@ class HBNBCommand(cmd.Cmd):
                 return False
 
         if len(ArgumentOne) == 4:
-            obj = odict["{}.{}".format(ArgumrntOne[0], ArgumentOne[1])]
+            obj = objdict["{}.{}".format(ArgumrntOne[0], ArgumentOne[1])]
             if ArgumrntOne[2] in obj.__class__.__dict__.keys():
                 valtype = type(obj.__class__.__dict__[ArgumentOne[2]])
                 obj.__dict__[ArgumentOne[2]] = valtype(ArgumentOne[3])
@@ -160,7 +169,7 @@ class HBNBCommand(cmd.Cmd):
         """Deletes an instance based on the class name and id (save the change into the JSON file)."""
         ArgumentOne = parse(arg)
 
-        odict = storage.all()
+        objdict = storage.all()
 
         if len(ArgumentOne) == 0:
             print("** class name missing **")
@@ -168,12 +177,12 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
         elif len(ArgumentOne) == 1:
             print("** instance id missing **")
-        elif "{}.{}".format(ArgumentOne[0], ArgumentOne[1]) not in odict.keys():
+        elif "{}.{}".format(ArgumentOne[0], ArgumentOne[1]) not in objdict.keys():
             print("** instance id missing **")
-        elif "{}.{}".format(ArgumentOne[0], ArgumentOne[1]) not in odict.keys():
+        elif "{}.{}".format(ArgumentOne[0], ArgumentOne[1]) not in objdict.keys():
             print("** no instance found **")
         else:
-            del odict["{}.{}".format(ArgumentOne[0], ArgumentOne[1])]
+            del objdict["{}.{}".format(ArgumentOne[0], ArgumentOne[1])]
             storage.save()
 
     def do_count(self, arg):
@@ -184,6 +193,21 @@ class HBNBCommand(cmd.Cmd):
             if ArgumentOne[0] == obj.__class__.__name__:
                 count += 1
         print(count)
+    def do_all(self, arg):
+        """Usage: all or all <class> or <class>.all()
+        Display string representations of all instances of a given class.
+        If no class is specified, displays all instantiated objects."""
+        ArgumentOne = parse(arg)
+        if len(ArgumentOne) > 0 and ArgumentOne[0] not in HBNBCommand.__classes:
+            print("** class doesn't exist **")
+        else:
+            objl = []
+            for obj in storage.all().values():
+                if len(ArgumentOne) > 0 and ArgumentOne[0] == obj.__class__.__name__:
+                    objl.append(obj.__str__())
+                elif len(ArgumentOne) == 0:
+                    objl.append(obj.__str__())
+            print(objl)
 
 
 

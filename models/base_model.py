@@ -1,9 +1,8 @@
 #!/bin/usr/python3
 """defines the BaseModel class"""
-import models
 from datetime import datetime
 from uuid import uuid4
-
+import models
 class BaseModel:
     """this is the base model of the HBnB project"""
 
@@ -15,9 +14,11 @@ class BaseModel:
         self.created_at = datetime.today()
         self.updated_at = datetime.today()
 
-        if len(kwargs) != 0:
+        if kwargs:
             for k, v in kwargs.items():
-                if k == "created_at" or k == "updated_at":
+                if k == "__class__":
+                    continue
+                elif k == "created_at" or k == "updated_at":
                     self.__dict__[k] = datetime.strptime(v, timeformat)
                 else:
                     self.__dict__[k] = v
@@ -32,14 +33,26 @@ class BaseModel:
     def to_dict(self):
         """returns the dictionary representation of the basemodel"""
 
-        mdict = self.__dict__.copy()
-        mdict["created_at"] = self.created_at.isoformat()
-        mdict["updated_at"] = self.updated_at.isoformat()
-        mdict["__class__"] = self.__class__.__name__
+        mydict = self.__dict__.copy()
+        mydict["created_at"] = self.created_at.isoformat()
+        mydict["updated_at"] = self.updated_at.isoformat()
+        mydict["__class__"] = self.__class__.__name__
 
-        return mdict
+        return mydict
 
     def __str__(self):
         """returns the print/str represenation of the basemodel instance"""
         classname = self.__class__.__name__
         return "[{}] ({}) {}".format(classname, self.id, self.__dict__)
+if __name__ == "__main__":
+    my_model = BaseModel()
+    my_model.name = "My First Model"
+    my_model.my_number = 89
+    print(my_model)
+    my_model.save()
+    print(my_model)
+    my_model_json = my_model.to_dict()
+    print(my_model_json)
+    print("JSON of my_model:")
+    for key in my_model_json.keys():
+        print("\t{}: ({}) - {}".format(key, type(my_model_json[key]), my_model_json[key]))
