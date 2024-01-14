@@ -5,6 +5,7 @@ import cmd
 import json
 import re
 import shlex
+from shlex import split
 from models import storage
 from models.base_model import BaseModel
 from models.user import User
@@ -111,11 +112,11 @@ class HBNBCommand(cmd.Cmd):
         elif len(ArgumentOne) == 1:
             print("** instance id missing **")
         else:
-            odict = storage.all()
+            objdict = storage.all()
 
-            key = "{}.{}".format(argl[0], ArgumentOne[1])
-            if key in odict:
-                print(odict[key])
+            key = "{}.{}".format(ArgumentOne[0], ArgumentOne[1])
+            if key in objdict:
+                print(objdict[key])
             else:
                 print("** no instance found **")
 
