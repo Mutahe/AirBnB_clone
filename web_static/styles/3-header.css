@@ -1,13 +1,9 @@
-header {
-    color: white;
+ header{
+    Background-color:#FFFFFF;
     height: 70px;
-    width: 100%;
+    width:100%;
     border-bottom: 1px #CCCCCC;
-}
-
-header.logo{
-    padding-left: 20px;
-    width: 142px;
-    height: 60px;
-    background: url("../images/logo.png") no-repeat center;
+    background-image: url("../images/logo.png");
+    background-repeat: no-repeat;
+    background-position: 20px;
 }
